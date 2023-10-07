@@ -21,8 +21,9 @@ Open Command Prompt or Terminal and navigate to the project directory.
 Run SafeSC:
 Use the following command to verify a smart contract:
 
-                "python SafeSC.py -a <smart_contract_address>"
+    "python SafeSC.py -a <smart_contract_address>"
                 
+# header h1
 Replace <smart_contract_address> with the Ethereum address of the smart contract you want to verify.
 
 Input
