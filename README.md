@@ -24,7 +24,7 @@ Use the following command to verify a smart contract:
                 "python SafeSC.py -a <smart_contract_address>"
                 
 Replace <smart_contract_address> with the Ethereum address of the smart contract you want to verify.
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Input
 SafeSC takes a smart contract address as input, which is typically found on the Ethereum blockchain.
 
