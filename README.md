@@ -47,4 +47,4 @@ Hard-Coded File Paths:
 Please note that this tool contains hard-coded file paths, which can be customized according to a specific user's system configuration.
 
 ## Note:
-SafeSC is a research tool developed for a thesis project, aiming to enhance smart contract verification while preserving user privacy and security.
+SafeSC is a research tool developed for a thesis project, meant only for testing and demonstration purposes.
