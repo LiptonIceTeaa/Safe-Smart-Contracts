@@ -23,7 +23,7 @@ Use the following command to verify a smart contract:
 
     "python SafeSC.py -a <smart_contract_address>"
                 
-# header h1
+
 Replace <smart_contract_address> with the Ethereum address of the smart contract you want to verify.
 
 Input
@@ -44,4 +44,5 @@ SafeSC relies on ZoKrates for zk-SNARKs computations. Ensure ZoKrates is install
 Limitations
 Hard-Coded File Paths:
 Please note that this tool contains hard-coded file paths, which can be customized according to a specific user's system configuration.
+
 SafeSC is a research tool developed for a thesis project, aiming to enhance smart contract verification while preserving user privacy and security.
