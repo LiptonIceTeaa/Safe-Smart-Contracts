@@ -1,0 +1,19 @@
+Compose an abstract and non-technical explanation of my Solidity smart contract that elucidates its core purpose and broad functionality, while refraining from mentioning any code segments, specific functions, or their details. 
+The aim is to communicate the contract's overarching objectives without engaging in technical specifics or low-level implementation descriptions.
+After mentioning the summary, mention the signature of any function mentioned in the code and say "Following are the function signatures found in the code:".
+
+
+pragma solidity ^0.8.0;
+
+contract Calculator {
+   
+    function add(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+
+    
+    function main(uint256 a, uint256 b) public pure returns (uint256) {
+        return add(a, b);
+    }
+}
+

@@ -1,0 +1,388 @@
+ I will provide you with a code written in Solidity, then based on that logic generate a ZoKrates DSL file that has the same logic, in which I can later use it to compile it and get a .zok file based on the following information and examples written in DSL ZoKrates.
+ I provide these examples to enhance you effiency and correctness so you understand the DSL ZoKrates lnagugae better and do a better job in representing Solidity code as DSL ZoKrates code.
+
+
+Firstly we explain Variables existing in DSL ZoKrates
+Variables
+Variables can have any name which does not start with a number. Variables are mutable, and always passed by value to functions.
+
+Declaration
+Variables need to be declared to be used. Declaration and definition are always combined, so that undefined variables do not exist.
+
+
+def main() {
+    // declare and define `my_variable`
+    field mut my_variable = 2;
+    // redefine `my_variable`
+    my_variable = 3;
+    return;
+}
+
+Mutability
+Variables are immutable by default. In order to declare a mutable variable, the mut keyword is used.
+
+
+def main() {
+    field a = 42;
+    // a = 43; <- not allowed, as `a` is immutable
+    field mut b = 42;
+    b = 43; // ok
+    return;
+} 
+
+Shadowing
+Shadowing is allowed.
+
+
+def main() -> field {
+    field a = 2;
+    field a = 3; // shadowing
+    for u32 i in 0..5 {
+        bool a = true; // shadowing
+    }
+    // `a` is the variable declared before the loop
+    return a;
+}
+
+Scope
+
+Function
+Functions have their own scope
+
+
+def foo() -> field {
+    // return myGlobal; <- not allowed
+    return 42;
+}
+
+def main() -> field {
+    field myGlobal = 42;
+    return foo();
+}
+
+For-loop
+For-loops have their own scope
+
+
+def main() -> u32 {
+    u32 mut a = 0;
+    for u32 i in 0..5 {
+        a = a + i;
+    }
+    // return i; <- not allowed
+    return a;
+}
+---------------------------------------------------------
+Now we explain the Types of data
+Types
+ZoKrates currently exposes two primitive types and two complex types:
+
+Primitive Types
+field
+This is the most basic type in ZoKrates, and it represents a field element with positive integer values in [0, p - 1] where p is a (large) prime number.
+
+As an example, p is set to 21888242871839275222246405745257275088548364400416034343698204186575808495617 when working with the ALT_BN128 curve supported by Ethereum.
+
+While field values mostly behave like unsigned integers, one should keep in mind that they overflow at p and not some power of 2, so that we have:
+
+
+def main() {
+    field pMinusOne = 21888242871839275222246405745257275088548364400416034343698204186575808495616;
+    assert(0 - 1 == pMinusOne);
+    return;
+}
+
+Note that division in the finite field behaves differently than in the case of integers. For field elements, the division operation multiplies the numerator with the denominator's inverse field element. The results coincide with integer divisions for cases with remainder 0, but differ otherwise.
+
+bool
+Booleans are available in ZoKrates. When a boolean is used as a parameter of the main function, the program is constrained to only accept 0 or 1 for that parameter. A boolean can be asserted to be true using an assert(bool) statement.
+
+u8/u16/u32/u64
+Unsigned integers represent positive numbers of the interval [0, 2 ** bitwidth[, where bitwidth is specified in the type's name, e.g., 32 bits in the case of u32. Their arithmetics are defined modulo 2 ** bitwidth.
+
+Internally, they use a binary encoding, which makes them particularly efficient for implementing programs that operate on that binary representation, e.g., the SHA256 hash function.
+
+Similarly to booleans, unsigned integer inputs of the main function only accept values of the appropriate range.
+
+The division operation calculates the standard floor division for integers. The % operand can be used to obtain the remainder.
+
+Numeric inference
+In the case of decimal literals like 42, the compiler tries to find the appropriate type (field, u8, u16, u32 or u64) depending on the context. If it cannot converge to a single option, an error is returned. This means that there is no default type for decimal literals.
+
+All operations between literals have the semantics of the inferred type.
+
+
+def main() {
+    // `255` is inferred to `255f`, and the addition happens between field elements
+    assert(255 + 1f == 256);
+
+    // `255` is inferred to `255u8`, and the addition happens between u8
+    // This causes an overflow
+    assert(255 + 1u8 == 0);
+
+    return;
+}
+
+Complex Types
+ZoKrates provides two complex types: arrays and structs.
+
+Arrays
+ZoKrates supports static arrays, i.e., whose length needs to be known at compile time. For more details on generic array sizes, see constant generics Arrays can contain elements of any type and have arbitrary dimensions.
+
+The following example code shows examples of how to use arrays:
+
+
+def main() -> field {
+    field[3] mut a = [1, 2, 3]; // initialize a field array with field values
+    a[2] = 4;               // set a member to a value
+    field[4] b = [42; 4];   // initialize an array of 4 values all equal to 42
+    field[4] c = [...a, 4]; // initialize an array copying values from `a`, followed by 4
+    field[2] d = a[1..3];   // initialize an array copying a slice from `a`
+    bool[3] e = [true, true || false, true]; // initialize a boolean array
+    u32 SIZE = 3;
+    field[SIZE] f = [1, 2, 3]; // initialize a field array with a size that's a compile-time constant
+    return a[0] + b[1] + c[2];
+}
+Declaration and Initialization
+An array is defined by appending [] to a type literal representing the type of the array's elements.
+
+Initialization always needs to happen in the same statement as a declaration, unless the array is declared within a function's signature.
+
+For initialization, a list of comma-separated values is provided within brackets [].
+
+ZoKrates offers a special shorthand syntax to initialize an array with a constant value: [value; repetitions]
+
+The following code provides examples for declaration and initialization:
+
+
+field[3] a = [1, 2, 3]; // initialize a field array with field values
+bool[13] b = [false; 13]; // initialize a bool array with value false
+Multidimensional Arrays
+As an array can contain any type of elements, it can contain arrays again. There is a special syntax to declare such multi-dimensional arrays, i.e., arrays of arrays. To declare an array of an inner array, i.e., and an array of elements of a type, prepend brackets [size] to the declaration of the inner array. In summary, this leads to the following scheme for array declarations: data_type[size of 1st dimension][size of 2nd dimension]. Consider the following example:
+
+
+def main() -> field {
+    // Array of two elements of array of 3 elements
+    field[2][3] a = [[1, 2, 3],[4, 5, 6]];
+
+    field[3] b = a[0]; // should be [1, 2, 3]
+
+    // allowed access [0..2][0..3]
+    return a[1][2];
+}
+
+Spreads and Slices
+ZoKrates provides some syntactic sugar to retrieve subsets of arrays.
+
+Spreads
+The spread operator ... applied to an array copies the elements of the existing array. This can be used to conveniently compose new arrays, as shown in the following example:
+
+
+field[3] a = [1, 2, 3];
+field[4] c = [...a, 4]; // initialize an array copying values from `a`, followed by 4
+Slices
+An array can also be assigned to by creating a copy of a subset of an existing array. This operation is called slicing, and the following example shows how to slice in ZoKrates:
+
+
+field[3] a = [1, 2, 3];
+field[2] b = a[1..3];   // initialize an array copying a slice from `a`
+Tuples
+A tuple is a composite datatype representing a numbered collection of values. The following code shows an example of how to use tuples.
+
+
+def main() -> bool {
+    (field[2], bool) mut v = ([1, 2], true);
+    v.0 = [42, 43];
+    return v.1;
+}
+
+In tuple types and values, the trailing comma is optional, unless the tuple contains a single element, in which case it is mandatory.
+
+Structs
+A struct is a composite datatype representing a named collection of values. Structs can be generic over constants, in order to wrap arrays of generic size. For more details on generic array sizes, see constant generics. The contained variables can be of any type.
+
+The following code shows an example of how to use structs.
+
+
+struct Bar<N> {
+    field[N] c;
+    bool d;
+}
+
+struct Foo<P> {
+    Bar<P> a;
+    bool b;
+}
+
+def main() -> Foo<2> {
+    Foo<2>[2] mut f = [Foo { a: Bar { c: [0, 0], d: false }, b: true}, Foo { a: Bar {c: [0, 0], d: false}, b: true }];
+    f[0].a.c = [42, 43];
+    return f[0];
+}
+
+Definition
+Before a struct data type can be used, it needs to be defined. A struct definition starts with the struct keyword followed by a name. Afterwards, a new-line separated list of variables is declared in curly braces {}. For example:
+
+
+struct Point {
+    field x;
+    field y;
+}
+Note that two struct definitions with the same members still introduce two entirely different types. For example, they cannot be compared with each other.
+
+Declaration and Initialization
+Initialization of a variable of a struct type always needs to happen in the same statement as a declaration, unless the struct-typed variable is declared within a function's signature.
+
+The following example shows declaration and initialization of a variable of the Point struct type:
+
+
+struct Point {
+    field x;
+    field y;
+}
+
+def main() -> Point {
+    Point p = Point { x: 1, y: 0 };
+    return p;
+}
+
+Assignment
+The variables within a struct instance, the so called members, can be accessed through the . operator as shown in the following extended example:
+
+
+struct Point {
+    field x;
+    field y;
+}
+
+def main(field a) -> Point {
+    Point mut p = Point { x: 1, y: 0 };
+    p.x = a;
+    p.y = p.x;
+    return p;
+}
+
+Type aliases
+Type aliases can be defined for any existing type. This can be useful for readability, or to specialize generic types.
+
+Note that type aliases are just syntactic sugar: in the type system, a type and its alias are exactly equivalent. For example, they can be compared.
+
+
+type MyField = field;
+
+type Rectangle<L, W> = bool[L][W];
+
+type Square<S> = Rectangle<S, S>;
+
+def main() {
+    MyField f = 42;
+    Rectangle<2, 2> r = [[true; 2]; 2];
+    Square<2> s = r;
+    return;
+}
+
+---------------------------------------------------------------------------------------
+No we show the exmaples:
+
+
+Example for 'user':
+
+def main(private field a, field b) {
+    assert(a * a == b);
+    return;
+}
+
+Example for conditionals:
+
+def main(field x) -> field {
+    field y = if x + 2 == 3 { 1 } else { 5 };
+    return y;
+}
+
+Example for 'for loops':
+
+def main() -> u32 {
+    u32 mut res = 0;
+    for u32 i in 0..4 {
+        for u32 j in i..5 {
+            res = res + i;
+        }
+    }
+    return res;
+}
+
+Example for functions:
+
+def foo(field a, field b) -> field {
+    return a + b;
+}
+
+def main() -> field {
+    return foo(1, 2);
+}
+
+Example for generics:
+
+def sum<N>(field[N] a) -> field {
+    field mut res = 0;
+    for u32 i in 0..N {
+        res = res + a[i];
+    }
+    return res;
+}
+
+def main(field[3] a) -> field {
+    return sum(a);
+}
+
+Example for Merkle Tree:
+
+import "hashes/sha256/512bit" as hash;
+import "hashes/utils/256bitsDirectionHelper" as multiplex;
+
+const u32 DEPTH = 3;
+
+def select(bool condition, u32[8] left, u32[8] right) -> (u32[8], u32[8]) {
+    return (condition ? right : left, condition ? left : right);
+}
+
+// Merke-Tree inclusion proof for tree depth 3 using sha256
+// directionSelector => true if current digest is on the rhs of the hash
+def main(u32[8] root, private u32[8] leaf, private bool[DEPTH] directionSelector, private u32[DEPTH][8] path) -> bool {
+    // Start from the leaf
+    u32[8] mut digest = leaf;
+
+	// Loop up the tree
+    for u32 i in 0..DEPTH {
+	    (u32[8], u32[8]) s = select(directionSelector[i], digest, path[i]);
+	    digest = hash(s.0, s.1);
+    }
+
+    return digest == root;
+}
+
+Example for sha256:
+
+import "hashes/sha256/sha256Padded";
+
+def main(u8[4] input, u32[8] expected_hash) {
+    u32[8] hash = sha256Padded(input);
+    assert(hash == expected_hash);
+    return;
+}
+
+The solidity smart contract I want you to represent in DSL ZoKrates:
+
+pragma solidity ^0.8.0;
+
+contract Calculator {
+   
+    function add(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+
+    
+    function main(uint256 a, uint256 b) public pure returns (uint256) {
+        return add(a, b);
+    }
+}
