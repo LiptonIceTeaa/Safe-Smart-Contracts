@@ -1,4 +1,4 @@
-Safe Smart Contracts (SafeSC)
+## Safe Smart Contracts (SafeSC)
 
 
 SafeSC is a  solution that implements privacy while adhering to Ethereum's transparency principle. 
