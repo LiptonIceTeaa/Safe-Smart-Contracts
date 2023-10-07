@@ -4,7 +4,7 @@
 ## Description
 SafeSC is a  solution that implements privacy while adhering to Ethereum's transparency principle. 
 The SafeSC Python tool and off-chain solution simplify implementation and testing, allowing users to understand and verify smart contracts using zk-SNARKs without accessing the source code.
-
+It is divided into two parts, a part that runs on a user's machine and a part that runs on external servers (FTP, MySQL DB, and API endpoint)
 
 ### Purpose
 SafeSC provides a streamlined approach to smart contract verification, enabling users to comprehend and validate a contract's integrity. 
